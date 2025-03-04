@@ -55,5 +55,5 @@ module "delegate" {
   replicas        = 1
   upgrader_enabled = true
 
-  depends_on = [module.eks, kubernetes_namespace.harness_delegate,data.aws_eks_cluster.eks]
+  depends_on = [module.eks, kubernetes_namespace.harness_delegate]
 }
