@@ -9,27 +9,49 @@ module "eks" {
   instance_types  = ["t3.medium"]
 }
 
-module "delegate" {
-  source = "harness/harness-delegate/kubernetes"
-  version = "0.1.8"
+# Fetch EKS cluster details dynamically
+data "aws_eks_cluster" "eks" {
+  name = module.eks.cluster_name
+}
 
-  account_id = "ucHySz2jQKKWQweZdXyCog"
-  delegate_token = "NzY5NTY3ZjJkYTczNWNjZDJjMmIwN2Y4MTA4NTJkNzM="
-  delegate_name = "terraform-delegate"
-  deploy_mode = "KUBERNETES"
-  namespace = "default"
-  manager_endpoint = "https://app.harness.io"
-  delegate_image = "harness/delegate:25.02.85300"
-  replicas = 1
-  upgrader_enabled = true
-depends_on = [module.eks]
+data "aws_eks_cluster_auth" "eks_auth" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.eks.endpoint
+  token                  = data.aws_eks_cluster_auth.eks_auth.token
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
 }
 
 provider "helm" {
   kubernetes {
-    config_path = "~/.kube/config"
+    host                   = data.aws_eks_cluster.eks.endpoint
+    token                  = data.aws_eks_cluster_auth.eks_auth.token
+    cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
   }
 }
 
-  
+# Create Harness Delegate Namespace
+resource "kubernetes_namespace" "harness_delegate" {
+  metadata {
+    name = "harness-delegate-ng"
+  }
+}
 
+module "delegate" {
+  source          = "harness/harness-delegate/kubernetes"
+  version         = "0.1.8"
+
+  account_id      = "ucHySz2jQKKWQweZdXyCog"
+  delegate_token  = "NzY5NTY3ZjJkYTczNWNjZDJjMmIwN2Y4MTA4NTJkNzM="
+  delegate_name   = "terraform-delegate"
+  deploy_mode     = "KUBERNETES"
+  namespace       = kubernetes_namespace.harness_delegate.metadata[0].name
+  manager_endpoint = "https://app.harness.io"
+  delegate_image  = "harness/delegate:25.02.85300"
+  replicas        = 1
+  upgrader_enabled = true
+
+  depends_on = [module.eks, kubernetes_namespace.harness_delegate]
+}
