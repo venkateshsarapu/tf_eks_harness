@@ -17,7 +17,7 @@ module "delegate" {
   delegate_token = "NzY5NTY3ZjJkYTczNWNjZDJjMmIwN2Y4MTA4NTJkNzM="
   delegate_name = "terraform-delegate"
   deploy_mode = "KUBERNETES"
-  namespace = "harness-delegate-ng"
+  namespace = "default"
   manager_endpoint = "https://app.harness.io"
   delegate_image = "harness/delegate:25.02.85300"
   replicas = 1
