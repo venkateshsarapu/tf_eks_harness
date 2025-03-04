@@ -12,10 +12,12 @@ module "eks" {
 # Fetch EKS cluster details dynamically
 data "aws_eks_cluster" "eks" {
   name = module.eks.cluster_name
+  depends_on = [module.eks] 
 }
 
 data "aws_eks_cluster_auth" "eks_auth" {
   name = module.eks.cluster_name
+  depends_on = [module.eks] 
 }
 
 provider "kubernetes" {
@@ -53,5 +55,5 @@ module "delegate" {
   replicas        = 1
   upgrader_enabled = true
 
-  depends_on = [module.eks, kubernetes_namespace.harness_delegate]
+  depends_on = [module.eks, kubernetes_namespace.harness_delegate,data.aws_eks_cluster.eks]
 }
