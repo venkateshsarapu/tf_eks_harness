@@ -52,7 +52,7 @@ module "delegate" {
   namespace       = kubernetes_namespace.harness_delegate.metadata[0].name
   manager_endpoint = "https://app.harness.io"
   delegate_image  = "harness/delegate:25.02.85300"
-  replicas        = 1
+  replicas        = 2
   upgrader_enabled = true
 
   depends_on = [module.eks, kubernetes_namespace.harness_delegate]
