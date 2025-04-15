@@ -4,6 +4,8 @@ metadata:
   name: harness-ingress
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
+    # Explicitly set the IngressClass to the NGINX controller
+    kubernetes.io/ingress.class: "nginx"
 spec:
   rules:
     - http:
